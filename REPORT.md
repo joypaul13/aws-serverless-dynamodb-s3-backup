@@ -140,8 +140,6 @@ This log output shows the export process completing successfully and recording t
 
 ### 1. What is the difference between Lambda's execution role and Scheduler's execution role?
 
-**Simple answer:** The two roles have different jobs.
-
 - **Lambda execution role:** Gives the Lambda function permission to do its work, such as writing to DynamoDB, reading DynamoDB records, saving files to S3, and writing logs.
 - **Scheduler execution role:** Gives EventBridge Scheduler permission to start the target Lambda function at the scheduled time.
 
@@ -149,15 +147,15 @@ In short, Scheduler's role starts the function, and the Lambda role lets the fun
 
 ### 2. Why does running Lambda 1 twice not produce 20 DynamoDB users?
 
-**Simple answer:** DynamoDB uses `id` as the partition key. When Lambda 1 writes a user whose `id` already exists, `PutItem` replaces that item instead of creating a duplicate. So importing the same 10 users twice normally leaves 10 items, not 20.
+DynamoDB uses `id` as the partition key. When Lambda 1 writes a user whose `id` already exists, `PutItem` replaces that item instead of creating a duplicate. So importing the same 10 users twice normally leaves 10 items, not 20.
 
 ### 3. Why do Lambda 2 backups have unique timestamps and request IDs?
 
-**Simple answer:** Each time Lambda 2 runs, it adds the current time and the Lambda request ID to the S3 filename. This helps give each backup a different name, so one backup does not overwrite another. The request ID can also help us find the matching Lambda run in the logs.
+Each time Lambda 2 runs, it adds the current time and the Lambda request ID to the S3 filename. This helps give each backup a different name, so one backup does not overwrite another. The request ID can also help us find the matching Lambda run in the logs.
 
 ### 4. What is the difference between `print()` logs and `Invocations` / `Errors` metrics?
 
-**Simple answer:** `print()` writes messages about what the code is doing. These messages can be viewed in CloudWatch Logs. For example, the code can print how many records it exported.
+`print()` writes messages about what the code is doing. These messages can be viewed in CloudWatch Logs. For example, the code can print how many records it exported.
 
 - **Invocations metric:** Counts how many times Lambda was called.
 - **Errors metric:** Counts how many invocations failed.
@@ -166,13 +164,13 @@ Metrics show counts and trends. Logs help us understand what happened during a p
 
 ### 5. What would happen if the DynamoDB table were deleted but the JSON files remained in S3? Could the original indexes/configuration be automatically restored from JSON alone?
 
-**Simple answer:** The JSON files in S3 would still be there, unless they were also deleted. We could use the files to put the saved records into a newly created DynamoDB table.
+The JSON files in S3 would still be there, unless they were also deleted. We could use the files to put the saved records into a newly created DynamoDB table.
 
 However, the JSON data alone does not automatically restore the original table settings, indexes, permissions, alarms, or capacity configuration. Those settings would need to be created again separately. The JSON files contain the exported data, not a complete copy of the whole DynamoDB setup.
 
 ### 6. Why is an export every two minutes usually a poor production backup strategy for large DynamoDB tables?
 
-**Simple answer:** Exporting the whole table every two minutes can create many files, increase AWS costs, use DynamoDB read capacity, and take too long as the table grows. The data may also change while the scan is running, so the export is not necessarily a perfect snapshot of one moment in time.
+Exporting the whole table every two minutes can create many files, increase AWS costs, use DynamoDB read capacity, and take too long as the table grows. The data may also change while the scan is running, so the export is not necessarily a perfect snapshot of one moment in time.
 
 For production backups, consider DynamoDB Point-in-Time Recovery (PITR) and DynamoDB's managed Export to S3. Choose a backup frequency and retention period based on how much data the application can afford to lose, and test that the backups can actually be restored.
 
